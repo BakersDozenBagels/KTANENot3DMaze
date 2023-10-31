@@ -1,0 +1,10 @@
+{
+  "name": "Not3DMaze-Editor",
+  "references": [
+    "Not3DMaze"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": []
+}
