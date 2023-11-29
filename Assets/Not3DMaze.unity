@@ -202,7 +202,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
---- !u!1001 &144153928
+--- !u!1001 &286635858
 Prefab:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -240,6 +240,10 @@ Prefab:
     - target: {fileID: 429390, guid: 46e1e292f33ca2744831879098a05cf1, type: 2}
       propertyPath: m_RootOrder
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 186512, guid: 46e1e292f33ca2744831879098a05cf1, type: 2}
+      propertyPath: m_Name
+      value: MatchingMazeModule
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 46e1e292f33ca2744831879098a05cf1, type: 2}

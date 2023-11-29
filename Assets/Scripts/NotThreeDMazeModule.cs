@@ -7,6 +7,9 @@ using ThreeDMaze;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
+/// <summary>
+/// On the subject of Matching Maze
+/// </summary>
 public class NotThreeDMazeModule : MonoBehaviour
 {
     public KMBombInfo BombInfo;
@@ -54,11 +57,13 @@ public class NotThreeDMazeModule : MonoBehaviour
     {
         public bool W, N;
         public char Label;
+        public List<char> BadLabels;
         public Walls()
         {
             W = true;
             N = true;
             Label = (char)0;
+            BadLabels = new List<char>();
         }
 
         public Walls(Walls copy)
@@ -66,6 +71,7 @@ public class NotThreeDMazeModule : MonoBehaviour
             W = copy.W;
             N = copy.N;
             Label = copy.Label;
+            BadLabels = copy.BadLabels.ToList();
         }
 
         public static bool operator ==(Walls a, Walls b) => a.W == b.W && a.N == b.N;
@@ -108,10 +114,11 @@ public class NotThreeDMazeModule : MonoBehaviour
         catch
         {
             Solve(error: true);
+            throw;
         }
         ChooseSpawns();
 
-        Log("The maze:\n[Not 3D Maze #" + moduleId + "] " + Enumerable.Range(0, 33).Select(y =>
+        Log("The maze:\n[Matching Maze #" + moduleId + "] " + Enumerable.Range(0, 33).Select(y =>
               Enumerable.Range(0, 67).Select(x =>
               {
                   var xWall = (x - 2) % 4 == 0;
@@ -140,14 +147,14 @@ public class NotThreeDMazeModule : MonoBehaviour
                       return _maze[xx % 16][yy % 16].N ? '═' : ' ';
                   }
                   else
-                      return (x - 2) % 4 == 2 && (y) % 2 == 1
+                      return (x - 2) % 4 == 2 && y % 2 == 1
                       ? (_maze[xx][yy].Label == (char)0 ? ' ' : _maze[xx][yy].Label)
                       : xx == _playerA.X && yy == _playerA.Y
                       ? "▲►▼◄"[_rotA]
                       : xx == _playerB.X && yy == _playerB.Y
                       ? "▲►▼◄"[_rotB]
                       : ' ';
-              }).Join("")).Join("\n[Not 3D Maze #" + moduleId + "] "));
+              }).Join("")).Join("\n[Matching Maze #" + moduleId + "] "));
     }
 
     private void ChooseSpawns()
@@ -248,17 +255,23 @@ public class NotThreeDMazeModule : MonoBehaviour
                                     if (rotations[rotId][(x + addX) % 16][(y + addY) % 16].Label != _maze[x][y].Label)
                                         goto minorContinue;
 
+                            char letter;
+                            if (!enoughLetters)
+                                letter = letters.Current;
+                            else
+                                letter = preferredLetters.Concat("NESW").PickRandom();
+
                             var toLabel = Enumerable.Range(0, 32)
-                                .Select(i => i < 16
-                                    ? _maze[((i / 4) + addX) % 16][((i % 4) + addY) % 16]
-                                    : rotations[rotId][(((i - 16) / 4) + addX) % 16][(((i - 16) % 4) + addY) % 16])
-                                .Where(c => c.Label == (char)0)
+                                .Select(i => 
+                                    new { a = _maze[((i % 16 / 4) + addX) % 16][((i % 16 % 4) + addY) % 16], 
+                                          b = rotations[rotId][((i % 16 / 4) + addX) % 16][((i % 16 % 4) + addY) % 16], 
+                                          variant = i < 16 })
+                                .Where(c => (c.variant ? c.a : c.b).Label == (char)0 && !(!c.variant ? c.a : c.b).BadLabels.Contains(letter))
                                 .PickRandom();
 
-                            if (!enoughLetters)
-                                toLabel.Label = letters.Current;
-                            else
-                                toLabel.Label = preferredLetters.Concat("NESW").PickRandom();
+                            (toLabel.variant ? toLabel.a : toLabel.b).Label = letter;
+                            (!toLabel.variant ? toLabel.a : toLabel.b).BadLabels.Add(letter);
+
                             if (!letters.MoveNext())
                                 enoughLetters = true;
                             minorContinue:;
@@ -271,12 +284,13 @@ public class NotThreeDMazeModule : MonoBehaviour
 
         if (enoughLetters)
             return;
-        List<Walls> emptyCells = _maze.SelectMany(r => r).Where(c => c.Label == (char)0).ToList();
+        var emptyCells = _maze.SelectMany(r => r).Where(c => c.Label == (char)0).ToList();
         do
         {
-            var ix = Random.Range(0, emptyCells.Count);
-            emptyCells[ix].Label = letters.Current;
-            emptyCells.RemoveAt(ix);
+            var valid = emptyCells.Where(c => !c.BadLabels.Contains(letters.Current)).ToArray();
+            var ix = Random.Range(0, valid.Length);
+            valid[ix].Label = letters.Current;
+            emptyCells.Remove(valid[ix]);
         }
         while (letters.MoveNext());
     }
@@ -287,7 +301,7 @@ public class NotThreeDMazeModule : MonoBehaviour
     }
     private void Log(string s, params object[] args)
     {
-        Debug.LogFormat("[Not 3D Maze #" + moduleId + "] " + s, args);
+        Debug.LogFormat("[Matching Maze #" + moduleId + "] " + s, args);
     }
 
     private void HandleRuleseed()
@@ -721,7 +735,7 @@ public class NotThreeDMazeModule : MonoBehaviour
         }
         yield return null;
 
-        if (moves.Count > (64)) yield return "elevator music";
+        if (moves.Count > 64) yield return "elevator music";
 
         const float moveDelay = 0.1f;
         foreach (KMSelectable move in moves)

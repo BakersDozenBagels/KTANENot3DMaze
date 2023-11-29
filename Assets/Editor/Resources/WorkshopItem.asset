@@ -11,7 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5cf2299c8864afe4ab42466f546ae20d, type: 3}
   m_Name: WorkshopItem
   m_EditorClassIdentifier: 
-  WorkshopPublishedFileID: 2164996443
-  Title: 3D Maze
+  WorkshopPublishedFileID: 3075958107
+  Title: Matching Maze
   Tags:
   - Regular Module
